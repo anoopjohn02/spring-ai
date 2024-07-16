@@ -19,14 +19,13 @@ import java.util.Map;
 @Service
 public class OpenAIServiceImpl implements OpenAIService{
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final ChatClient chatClient;
 
     @Value("classpath:templates/capital-with-info.st")
     private Resource capitalPromptWithInfo;
 
     @Override
     public Answer answer(Question question) {
-        ChatClient chatClient = chatClientBuilder.build();
         return Answer.builder()
                 .answer(chatClient.prompt().user(question.question()).call().content())
                 .build();
@@ -34,7 +33,6 @@ public class OpenAIServiceImpl implements OpenAIService{
 
     @Override
     public Answer getCapitalWithInfo(CapitalRequest getCapitalRequest) {
-        ChatClient chatClient = chatClientBuilder.build();
         PromptTemplate promptTemplate = new PromptTemplate(capitalPromptWithInfo);
         Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.region()));
         return new Answer(chatClient.prompt(prompt).call().content());
