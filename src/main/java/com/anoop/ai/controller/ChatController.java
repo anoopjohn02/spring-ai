@@ -1,6 +1,7 @@
 package com.anoop.ai.controller;
 
 import com.anoop.ai.model.Answer;
+import com.anoop.ai.model.CapitalRequest;
 import com.anoop.ai.model.Question;
 import com.anoop.ai.services.OpenAIService;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,11 @@ public class ChatController {
 
     @PostMapping("/chat")
     public Answer generation(@RequestBody Question question) {
-        return new Answer(openAIService.answer(question.getQuestion()));
+        return openAIService.answer(question);
+    }
+
+    @PostMapping("/capital/info")
+    public Answer capitalInfo(@RequestBody CapitalRequest capitalRequest) {
+        return openAIService.getCapitalWithInfo(capitalRequest);
     }
 }
