@@ -9,8 +9,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
@@ -27,14 +27,16 @@ public class OpenAIServiceImpl implements OpenAIService{
     @Override
     public Answer answer(Question question) {
         ChatClient chatClient = chatClientBuilder.build();
-        return new Answer(chatClient.prompt().user(question.getQuestion()).call().content());
+        return Answer.builder()
+                .answer(chatClient.prompt().user(question.question()).call().content())
+                .build();
     }
 
     @Override
     public Answer getCapitalWithInfo(CapitalRequest getCapitalRequest) {
         ChatClient chatClient = chatClientBuilder.build();
         PromptTemplate promptTemplate = new PromptTemplate(capitalPromptWithInfo);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.getRegion()));
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.region()));
         return new Answer(chatClient.prompt(prompt).call().content());
     }
 

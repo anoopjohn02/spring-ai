@@ -17,6 +17,6 @@ class OpenAIServiceImplTest {
     @Test
     void testAnswer() {
         Answer answer = openAIService.answer(new Question("Tell me a dad joke."));
-        log.info("Answer: {}", answer.getAnswer());
+        log.info("Answer: {}", answer.answer());
     }
 }

@@ -1,12 +1,6 @@
 package com.anoop.ai.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Answer {
-    private String answer;
-}
+@Builder
+public record Answer(String answer) {}
