@@ -1,28 +1,31 @@
 package com.anoop.ai.controller;
 
-import com.anoop.ai.model.Answer;
-import com.anoop.ai.model.CapitalRequest;
-import com.anoop.ai.model.Question;
+import com.anoop.ai.model.AIChatMessage;
 import com.anoop.ai.services.OpenAIService;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.stereotype.Controller;
 
 @AllArgsConstructor
-@RestController
-@RequestMapping(value = "/v1/ai")
+@Controller
 public class ChatController {
+
     private final OpenAIService openAIService;
 
-    @PostMapping("/chat")
-    public Answer generation(@RequestBody Question question) {
-        return openAIService.answer(question);
+    @MessageMapping("/chat.register")
+    @SendTo("/topic/public")
+    public AIChatMessage register(@Payload AIChatMessage AIChatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        headerAccessor.getSessionAttributes().put("username", AIChatMessage.sender());
+        return AIChatMessage;
     }
 
-    @PostMapping("/capital/info")
-    public Answer capitalInfo(@RequestBody CapitalRequest capitalRequest) {
-        return openAIService.getCapitalWithInfo(capitalRequest);
+    @MessageMapping("/chat.send/{sender}")
+    @SendTo("/topic/{sender}")
+    public AIChatMessage sendMessage(@Payload AIChatMessage aiChatMessage) {
+        //openAIService.streamingChat(aiChatMessage);
+        return aiChatMessage;
     }
 }
