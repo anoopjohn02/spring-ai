@@ -1,5 +1,6 @@
 package com.anoop.ai.services;
 
+import com.anoop.ai.data.vector.DocumentService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,9 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class FilesStorageService {
+
+    private final DocumentService documentService;
+
     private final Path root = Paths.get("uploads");
     @PostConstruct
     public void init() throws IOException {
@@ -30,7 +34,7 @@ public class FilesStorageService {
     public void save(MultipartFile file, String userId) throws IOException {
         try {
             Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
-            Path filePath = root.resolve(file.getOriginalFilename());
+            documentService.loadSingleDocument(file.getResource(), userId);
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new RuntimeException("A file of that name already exists.");

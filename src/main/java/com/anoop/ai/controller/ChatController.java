@@ -25,7 +25,7 @@ public class ChatController {
     @MessageMapping("/chat.send/{sender}")
     @SendTo("/topic/{sender}")
     public AIChatMessage sendMessage(@Payload AIChatMessage aiChatMessage) {
-        //openAIService.streamingChat(aiChatMessage);
+        openAIService.streamingChat(aiChatMessage);
         return aiChatMessage;
     }
 }
