@@ -5,9 +5,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
-import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.reader.ExtractedTextFormatter;
+import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -40,8 +39,10 @@ public class AppAIConfig {
         return new TokenTextSplitter();
     }
 
-    /*@Bean
-    public EmbeddingModel embeddingModel() {
-        return new OpenAiEmbeddingModel(new OpenAiApi(apiKey));
-    }*/
+    @Bean
+    public PdfDocumentReaderConfig pdfDocumentReaderConfig() {
+        return PdfDocumentReaderConfig.builder()
+                .withPageExtractedTextFormatter(new ExtractedTextFormatter.Builder().build())
+                .build();
+    }
 }

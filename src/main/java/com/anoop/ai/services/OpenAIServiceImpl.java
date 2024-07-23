@@ -8,7 +8,6 @@ import com.anoop.ai.model.Question;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,7 +61,8 @@ public class OpenAIServiceImpl implements OpenAIService{
                 .advisors(a -> a
                         .param(CHAT_MEMORY_CONVERSATION_ID_KEY, message.sender())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 100)
-                        .param(FILTER_EXPRESSION, "userId == '"+message.sender()+"'"))
+                        .param(FILTER_EXPRESSION, "userId == '"+message.sender()+"'")
+                        )
                 .stream()
                 .content();
         flux.subscribe(token -> tokenReceived(message.sender(), messageId, token));
