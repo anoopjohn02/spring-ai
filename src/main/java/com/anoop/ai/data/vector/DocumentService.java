@@ -7,12 +7,15 @@ import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,5 +38,17 @@ public class DocumentService {
 
         log.info("Storing chunks to vector db");
         vectorStore.add(chunks);
+    }
+
+    public boolean deleteByFile(String fileName) {
+        String query = "where={'source':'"+fileName+"'}";
+        SearchRequest searchRequest = SearchRequest.query(query).withTopK(Integer.MAX_VALUE);
+        List<Document> documents = vectorStore.similaritySearch(searchRequest);
+        List<String> ids = documents.stream().map(Document::getId).collect(Collectors.toList());
+        Optional<Boolean> deleteVector = vectorStore.delete(ids);
+        if(deleteVector.isPresent()) {
+            return deleteVector.get();
+        }
+        return false;
     }
 }
