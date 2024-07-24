@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -38,6 +39,9 @@ public class OpenAIServiceImpl implements OpenAIService{
     @Value("classpath:templates/capital-with-info.st")
     private Resource capitalPromptWithInfo;
 
+    @Value("classpath:templates/greet-me.st")
+    private Resource greet;
+
     @Override
     public Answer answer(Question question) {
         return Answer.builder()
@@ -55,8 +59,11 @@ public class OpenAIServiceImpl implements OpenAIService{
     @Async
     @Override
     public void streamingChat(AIChatMessage message) {
+        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(greet);
+        Prompt prompt = systemPromptTemplate.create(Map.of("name", message.sender()));
         UUID messageId = UUID.randomUUID();
         Flux<String> flux = chatClient.prompt()
+                .system(prompt.getContents())
                 .user(message.content())
                 .advisors(a -> a
                         .param(CHAT_MEMORY_CONVERSATION_ID_KEY, message.sender())
