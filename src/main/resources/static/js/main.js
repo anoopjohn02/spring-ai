@@ -16,6 +16,15 @@ var colors = [
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
 ];
 
+var xhr = function(type, url, content) {
+    return new Promise(function(resolve, reject) {
+        var xmhr = new XMLHttpRequest();
+        xmhr.open(type, url, true);
+        xmhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmhr.send(JSON.stringify(content));
+    });
+};
+
 function connect(event) {
     username = document.querySelector('#name').value.trim();
 
@@ -51,8 +60,35 @@ function onError(error) {
     connectingElement.style.color = 'red';
 }
 
-
 function send(event) {
+    var messageType = document.querySelector('input[name="radio"]:checked').value;
+    console.log(messageType)
+    if(messageType == 'api'){
+        sendStream(event);
+    }else if(messageType == 'ws'){
+        sendWs(event);
+    }
+    event.preventDefault();
+}
+
+function sendStream(event) {
+    var messageContent = messageInput.value.trim();
+    var chatMessage = {
+                messageId: self.crypto.randomUUID(),
+                sender: username,
+                content: messageInput.value,
+                type: 'CHAT'
+            };
+    JSON.stringify(chatMessage)
+    xhr('POST', 'http://localhost:8081/temp/stream', chatMessage)
+        .then(function(success){
+            console.log(success);
+        });
+    messageInput.value = '';
+    //onMessageReceived(chatMessage)
+}
+
+function sendWs(event) {
     var messageContent = messageInput.value.trim();
 
     if(messageContent && stompClient) {
@@ -66,7 +102,6 @@ function send(event) {
         stompClient.send("/app/chat.send/"+username, {}, JSON.stringify(chatMessage));
         messageInput.value = '';
     }
-    event.preventDefault();
 }
 
 
