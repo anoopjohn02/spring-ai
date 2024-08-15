@@ -90,12 +90,9 @@ function sendStream(event) {
                     return;
                 }
                 // Decode and display each chunk
-                console.log(value);
                 const chunk = decoder.decode(value, { stream: true });
                 console.log(chunk);
-                //const json = JSON.parse(chunk);
-                console.log(value.data);
-                //onMessageReceived(chunk.data)
+                onMessageReceived(chunk.slice(5).trim())
                 readStream();
             });
         }
