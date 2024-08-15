@@ -31,7 +31,7 @@ import static org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor.F
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class OpenAIServiceImpl implements OpenAIService{
+public class OpenAIServiceImpl implements OpenAIService {
 
     private final ChatClient chatClient;
 
@@ -52,13 +52,6 @@ public class OpenAIServiceImpl implements OpenAIService{
                 .build();
     }
 
-    @Override
-    public Answer getCapitalWithInfo(CapitalRequest getCapitalRequest) {
-        PromptTemplate promptTemplate = new PromptTemplate(capitalPromptWithInfo);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.region()));
-        return new Answer(chatClient.prompt(prompt).call().content());
-    }
-
     @Async
     @Override
     public void streamingChat(AIChatMessage message) {
@@ -68,10 +61,13 @@ public class OpenAIServiceImpl implements OpenAIService{
     }
 
     @Override
-    public void streamingChatApi(AIChatMessage message, OutputStream out) {
+    public Flux<AIChatMessage> streamingChatApi(AIChatMessage message) {
         Flux<String> flux = ask(message);
         UUID messageId = UUID.randomUUID();
-        flux.subscribe(token -> writeToStream(out, messageId, token));
+        /*flux.subscribe(token -> {
+            aiChatMessage(messageId, token);
+        });*/
+        return flux.map(token -> aiChatMessage(messageId, token));
     }
 
     private Flux<String> ask(AIChatMessage message) {
@@ -83,7 +79,7 @@ public class OpenAIServiceImpl implements OpenAIService{
                 .advisors(a -> a
                         .param(CHAT_MEMORY_CONVERSATION_ID_KEY, message.sender())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 100)
-                        .param(FILTER_EXPRESSION, "userId == '"+message.sender()+"'")
+                        .param(FILTER_EXPRESSION, "userId == '" + message.sender() + "'")
                 )
                 .stream()
                 .content();
@@ -115,7 +111,7 @@ public class OpenAIServiceImpl implements OpenAIService{
         send(userId, aiChatMessage(messageId, token));
     }
 
-    private void send(String userId, AIChatMessage message){
+    private void send(String userId, AIChatMessage message) {
         String destination = WS_MESSAGE_DESTINATION + "/" + userId;
         simpMessagingTemplate.convertAndSend(destination, message);
     }

@@ -80,7 +80,7 @@ function sendStream(event) {
                 type: 'CHAT'
             };
     JSON.stringify(chatMessage)
-    xhr('POST', 'http://localhost:8081/temp/stream', chatMessage)
+    xhr('POST', 'http://localhost:8081/api/stream', chatMessage)
         .then(function(success){
             console.log(success);
         });

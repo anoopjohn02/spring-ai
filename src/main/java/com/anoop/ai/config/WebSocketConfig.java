@@ -1,4 +1,4 @@
-package com.anoop.ai.controller;
+package com.anoop.ai.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

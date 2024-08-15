@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -33,28 +35,26 @@ public class FilesController {
     private FilesStorageService storageService;
 
     @GetMapping
-    public ResponseEntity<List<FileInfo>> getListFiles() throws IOException {
-        List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
-            String filename = path.getFileName().toString();
-            String url = MvcUriComponentsBuilder
-                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
-
-            return new FileInfo(filename, url);
-        }).collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
+    public Flux<FileInfo> getListFiles() throws IOException {
+        Flux<FileInfo> fileInfos = Flux.fromStream(storageService.loadAll())
+                .map(path -> {
+                    String filename = path.getFileName().toString();
+                    String url = MvcUriComponentsBuilder
+                            .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
+                    return new FileInfo(filename, url);
+                });
+        return fileInfos;
     }
 
     @GetMapping("/{filename:.+}")
     @ResponseBody
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) throws MalformedURLException {
+    public Mono<Resource> getFile(@PathVariable String filename) throws MalformedURLException {
         Resource file = storageService.load(filename);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+        return Mono.just(file);
     }
 
     @PostMapping("/upload/{id}")
-    public ResponseEntity<ResponseMessage> uploadFile(
+    public Mono<ResponseMessage> uploadFile(
             @RequestParam("file") MultipartFile file,
             @PathVariable(name = "id") String userId) {
         String message = "";
@@ -62,15 +62,16 @@ public class FilesController {
             storageService.save(file, userId);
 
             message = "Uploaded the file successfully: " + file.getOriginalFilename();
-            return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
+            return Mono.just(new ResponseMessage(message));
         } catch (Exception e) {
             message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
+            return Mono.just(new ResponseMessage(message));
         }
     }
 
     @DeleteMapping("/all")
-    public void deleteAll() {
+    public Mono<Void> deleteAll() {
         storageService.deleteAll();
+        return Mono.empty();
     }
 }
