@@ -16,15 +16,6 @@ var colors = [
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
 ];
 
-var xhr = function(type, url, content) {
-    return new Promise(function(resolve, reject) {
-        var xmhr = new XMLHttpRequest();
-        xmhr.open(type, url, true);
-        xmhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xmhr.send(JSON.stringify(content));
-    });
-};
-
 function connect(event) {
     username = document.querySelector('#name').value.trim();
 
@@ -43,7 +34,7 @@ function connect(event) {
 
 function onConnected() {
     // Subscribe to the Public Topic
-    stompClient.subscribe('/topic/'+username, onMessageReceived);
+    stompClient.subscribe('/topic/'+username, onWsMessageReceived);
 
     // Tell your username to the server
     stompClient.send("/app/chat.register",
@@ -56,7 +47,7 @@ function onConnected() {
 
 
 function onError(error) {
-    connectingElement.textContent = 'Não foi possível se conectar ao WebSocket! Atualize a página e tente novamente ou entre em contato com o administrador.';
+    connectingElement.textContent = 'Unable to connect to WebSocket! Use Stream API.';
     connectingElement.style.color = 'red';
 }
 
@@ -79,13 +70,43 @@ function sendStream(event) {
                 content: messageInput.value,
                 type: 'CHAT'
             };
-    JSON.stringify(chatMessage)
-    xhr('POST', 'http://localhost:8081/api/stream', chatMessage)
-        .then(function(success){
-            console.log(success);
-        });
-    messageInput.value = '';
-    //onMessageReceived(chatMessage)
+    var msg = JSON.stringify(chatMessage)
+    const streamUrl = 'http://localhost:8081/v1/stream/api';
+    fetch(streamUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: msg
+    }).then(response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        console.log("got response")
+        function readStream() {
+            console.log("reading chunk");
+            return reader.read().then(({ done, value }) => {
+                if (done) {
+                    console.log('Stream finished.');
+                    return;
+                }
+                // Decode and display each chunk
+                console.log(value);
+                const chunk = decoder.decode(value, { stream: true });
+                console.log(chunk);
+                //const json = JSON.parse(chunk);
+                console.log(value.data);
+                //onMessageReceived(chunk.data)
+                readStream();
+            });
+        }
+        readStream();
+    }).catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function handleStream(event) {
+    console.log(event.data);
 }
 
 function sendWs(event) {
@@ -104,9 +125,13 @@ function sendWs(event) {
     }
 }
 
+function onWsMessageReceived(payload) {
+    onMessageReceived(payload.body);
+}
 
 function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body);
+    console.log(payload);
+    var message = JSON.parse(payload);
 
     var textElement = document.getElementById(message.messageId);
     if(textElement){

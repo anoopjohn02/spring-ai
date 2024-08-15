@@ -4,7 +4,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Chat with AI | Spring Boot + WebSocket</title>
-    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/web/css/main.css" />
 </head>
 <body background="maxresdefault.jpg"
       style="background-position: center; background-repeat: no-repeat; background-size: cover;">
@@ -33,10 +33,10 @@
             <h2>Chat with AI</h2>
             <div align="center" id="messageType">
                 <table><tr><td>
-                    <input type="radio" id="ws" name="radio" value="ws" checked="true">
+                    <input type="radio" id="ws" name="radio" value="ws">
                     <label for="ws">Web Socket</label><br>
                 </td><td>
-                    <input type="radio" id="api" name="radio" value="api">
+                    <input type="radio" id="api" name="radio" value="api" checked="true">
                     <label for="api">Stream API</label><br>
                 </td></tr></table>
             </div>
@@ -61,6 +61,6 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
 <script
         src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script src="/js/main.js"></script>
+<script src="/web/js/main.js"></script>
 </body>
 </html>

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import reactor.core.publisher.Flux;
 
@@ -41,17 +42,5 @@ public class ChatController {
     public AIChatMessage sendMessage(@Payload AIChatMessage aiChatMessage) {
         openAIService.streamingChat(aiChatMessage);
         return aiChatMessage;
-    }
-
-    @PostMapping(value = "/api/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<AIChatMessage> stream(@RequestBody AIChatMessage aiChatMessage) {
-        return openAIService.streamingChatApi(aiChatMessage);
-    }
-
-    @GetMapping(value = "/temp/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> tempStream() {
-        return Flux.range(1, 10)
-                .delayElements(Duration.ofSeconds(1))
-                .map(i -> "stream message-"+i +" ");
     }
 }
