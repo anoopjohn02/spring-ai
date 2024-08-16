@@ -16,6 +16,8 @@ var colors = [
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
 ];
 
+var host = "http://localhost:8081";
+
 function connect(event) {
     username = document.querySelector('#name').value.trim();
 
@@ -53,7 +55,7 @@ function onError(error) {
 
 function send(event) {
     var messageType = document.querySelector('input[name="radio"]:checked').value;
-    console.log(messageType)
+    //console.log(messageType)
     if(messageType == 'api'){
         sendStream(event);
     }else if(messageType == 'ws'){
@@ -81,9 +83,9 @@ function sendStream(event) {
     }).then(response => {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        console.log("got response")
+        //console.log("got response")
         function readStream() {
-            console.log("reading chunk");
+            //console.log("reading chunk");
             return reader.read().then(({ done, value }) => {
                 if (done) {
                     console.log('Stream finished.');
@@ -91,8 +93,10 @@ function sendStream(event) {
                 }
                 // Decode and display each chunk
                 const chunk = decoder.decode(value, { stream: true });
-                console.log(chunk);
-                onMessageReceived(chunk.slice(5).trim())
+                //console.log("Received = "+chunk);
+                const payload = chunk.slice(5).trim();
+                //console.log("Payload = "+payload);
+                onMessageReceived(payload)
                 readStream();
             });
         }
@@ -100,6 +104,8 @@ function sendStream(event) {
     }).catch(error => {
         console.error('Error:', error);
     });
+    messageInput.value = '';
+    onMessageReceived(msg)
 }
 
 function handleStream(event) {
@@ -108,7 +114,6 @@ function handleStream(event) {
 
 function sendWs(event) {
     var messageContent = messageInput.value.trim();
-
     if(messageContent && stompClient) {
         var chatMessage = {
             messageId: self.crypto.randomUUID(),
@@ -127,54 +132,57 @@ function onWsMessageReceived(payload) {
 }
 
 function onMessageReceived(payload) {
-    console.log(payload);
-    var message = JSON.parse(payload);
+    try{
+        //console.log(payload);
+        var message = JSON.parse(payload);
+        var textElement = document.getElementById(message.messageId);
+        if(textElement){
+            //console.log("element find")
+            var messageText = document.createTextNode(message.content);
+            textElement.appendChild(messageText);
+            return;
+        } else {
+            //console.log("element NOT find")
+            textElement = document.createElement('p');
+            textElement.setAttribute("id", message.messageId);
+        }
 
-    var textElement = document.getElementById(message.messageId);
-    if(textElement){
-        console.log("element find")
+        var messageElement = document.createElement('li');
+
+        if(message.type === 'JOIN') {
+            messageElement.classList.add('event-message');
+            message.content = message.sender + ' joined!';
+        } else if (message.type === 'LEAVE') {
+            messageElement.classList.add('event-message');
+            message.content = message.sender + ' left!';
+        } else {
+            messageElement.classList.add('chat-message');
+
+            var avatarElement = document.createElement('i');
+            var avatarText = document.createTextNode(message.sender[0]);
+            avatarElement.appendChild(avatarText);
+            avatarElement.style['background-color'] = getAvatarColor(message.sender);
+
+            messageElement.appendChild(avatarElement);
+
+            var usernameElement = document.createElement('span');
+            var usernameText = document.createTextNode(message.sender);
+            usernameElement.appendChild(usernameText);
+            messageElement.appendChild(usernameElement);
+        }
+
         var messageText = document.createTextNode(message.content);
         textElement.appendChild(messageText);
-        return;
-    } else {
-        console.log("element NOT find")
-        textElement = document.createElement('p');
-        textElement.setAttribute("id", message.messageId);
+
+        messageElement.appendChild(textElement);
+
+        messageArea.appendChild(messageElement);
+        messageArea.scrollTop = messageArea.scrollHeight;
+    } catch(err) {
+        console.log("Error Payload -> "+payload)
+        console.error('Error:', err);
     }
-
-    var messageElement = document.createElement('li');
-
-    if(message.type === 'JOIN') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' joined!';
-    } else if (message.type === 'LEAVE') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' left!';
-    } else {
-        messageElement.classList.add('chat-message');
-
-        var avatarElement = document.createElement('i');
-        var avatarText = document.createTextNode(message.sender[0]);
-        avatarElement.appendChild(avatarText);
-        avatarElement.style['background-color'] = getAvatarColor(message.sender);
-
-        messageElement.appendChild(avatarElement);
-
-        var usernameElement = document.createElement('span');
-        var usernameText = document.createTextNode(message.sender);
-        usernameElement.appendChild(usernameText);
-        messageElement.appendChild(usernameElement);
-    }
-
-    var messageText = document.createTextNode(message.content);
-    textElement.appendChild(messageText);
-
-    messageElement.appendChild(textElement);
-
-    messageArea.appendChild(messageElement);
-    messageArea.scrollTop = messageArea.scrollHeight;
 }
-
 
 function getAvatarColor(messageSender) {
     var hash = 0;
