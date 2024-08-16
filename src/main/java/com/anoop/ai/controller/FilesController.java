@@ -9,12 +9,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +26,8 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @AllArgsConstructor
 @RestController
@@ -53,18 +57,19 @@ public class FilesController {
 
     @PostMapping("/upload/{id}")
     public Mono<ResponseMessage> uploadFile(
-            @RequestParam("file") MultipartFile file,
+            @RequestPart("file") Mono<FilePart> filePartMono,
             @PathVariable(name = "id") String userId) {
-        String message = "";
-        try {
-            storageService.save(file, userId);
-
-            message = "Uploaded the file successfully: " + file.getOriginalFilename();
-            return Mono.just(new ResponseMessage(message));
-        } catch (Exception e) {
-            message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
-            return Mono.just(new ResponseMessage(message));
-        }
+        return filePartMono.flatMap(filePart -> {
+            String message = "";
+            try {
+                storageService.save(filePart, userId);
+                message = "Uploaded the file successfully: " + filePart.filename();
+                return Mono.just(new ResponseMessage(message));
+            } catch (Exception e) {
+                message = "Could not upload the file: " + filePart.filename() + ". Error: " + e.getMessage();
+                return Mono.just(new ResponseMessage(message));
+            }
+        });
     }
 
     @DeleteMapping("/all")

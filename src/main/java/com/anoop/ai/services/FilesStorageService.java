@@ -5,10 +5,11 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -28,16 +29,20 @@ public class FilesStorageService {
 
     private final DocumentService documentService;
 
+    private final ResourceLoader resourceLoader;
+
     private final Path root = Paths.get("uploads");
     @PostConstruct
     public void init() throws IOException {
         Files.createDirectories(root);
     }
 
-    public void save(MultipartFile file, String userId) throws IOException {
+    public void save(FilePart filePart, String userId) throws IOException {
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
-            documentService.loadSingleDocument(file.getResource(), userId);
+            Path path = this.root.resolve(filePart.filename());
+            filePart.transferTo(path);
+            Resource resource  = resourceLoader.getResource(path.toString());
+            documentService.loadSingleDocument(resource, userId);
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new RuntimeException("A file of that name already exists.");
