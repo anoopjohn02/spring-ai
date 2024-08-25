@@ -2,6 +2,7 @@ package com.anoop.ai.controller;
 
 import com.anoop.ai.model.AIChatMessage;
 import com.anoop.ai.services.OpenAIService;
+import com.anoop.ai.model.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @Slf4j
 @AllArgsConstructor
@@ -30,10 +32,19 @@ public class StreamController {
     }
 
     @GetMapping(value = "/temp", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> tempStream() {
+    public Flux<AIChatMessage> tempStream() {
         log.info("Temp Streaming...");
         return Flux.range(1, 10)
                 .delayElements(Duration.ofSeconds(1))
-                .map(i -> "stream message-"+i +" ");
+                .map(i -> aIChatMessage("stream message-"+i +" "));
+    }
+
+    private AIChatMessage aIChatMessage(String message) {
+        return AIChatMessage.builder()
+                .messageId(UUID.randomUUID())
+                .content(message)
+                .sender("AI")
+                .type(MessageType.CHAT)
+                .build();
     }
 }

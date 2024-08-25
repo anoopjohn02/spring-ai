@@ -42,7 +42,7 @@ public class FilesStorageService {
             Path path = this.root.resolve(filePart.filename());
             filePart.transferTo(path);
             Resource resource  = resourceLoader.getResource(path.toString());
-            documentService.loadSingleDocument(resource, userId);
+            //documentService.loadSingleDocument(resource, userId);
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new RuntimeException("A file of that name already exists.");
