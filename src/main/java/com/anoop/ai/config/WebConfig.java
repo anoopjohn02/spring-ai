@@ -10,14 +10,11 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
 @EnableWebFlux
 public class WebConfig implements WebFluxConfigurer {
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/web/**")
-                .addResourceLocations("classpath:/static/");
-    }
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/web/**").addResourceLocations("classpath:/static/");
+  }
 
-    @Override
-    public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
-    }
-
+  @Override
+  public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {}
 }

@@ -11,31 +11,31 @@ import org.springframework.stereotype.Service;
 @Service
 public class PersistentChatMemoryStore implements ChatMemory {
 
-    Map<Object, List<Message>> inMemoryStore = new HashMap<>();
+  Map<Object, List<Message>> inMemoryStore = new HashMap<>();
 
-    @Override
-    public void add(String conversationId, Message message) {
-        List<Message> existingOrNew = inMemoryStore.getOrDefault(conversationId, new ArrayList<>());
-        existingOrNew.add(message);
-        inMemoryStore.put(conversationId, existingOrNew);
-    }
+  @Override
+  public void add(String conversationId, Message message) {
+    List<Message> existingOrNew = inMemoryStore.getOrDefault(conversationId, new ArrayList<>());
+    existingOrNew.add(message);
+    inMemoryStore.put(conversationId, existingOrNew);
+  }
 
-    @Override
-    public void add(String conversationId, List<Message> messages) {
-        if(inMemoryStore.containsKey(conversationId)) {
-            inMemoryStore.get(conversationId).addAll(messages);
-        } else {
-            inMemoryStore.put(conversationId, messages);
-        }
+  @Override
+  public void add(String conversationId, List<Message> messages) {
+    if (inMemoryStore.containsKey(conversationId)) {
+      inMemoryStore.get(conversationId).addAll(messages);
+    } else {
+      inMemoryStore.put(conversationId, messages);
     }
+  }
 
-    @Override
-    public List<Message> get(String conversationId, int lastN) {
-        return inMemoryStore.getOrDefault(conversationId, new ArrayList<>());
-    }
+  @Override
+  public List<Message> get(String conversationId, int lastN) {
+    return inMemoryStore.getOrDefault(conversationId, new ArrayList<>());
+  }
 
-    @Override
-    public void clear(String conversationId) {
-        inMemoryStore.remove(conversationId);
-    }
+  @Override
+  public void clear(String conversationId) {
+    inMemoryStore.remove(conversationId);
+  }
 }

@@ -1,3 +1,3 @@
 package com.anoop.ai.model;
 
-public record CapitalRequest (String region){}
+public record CapitalRequest(String region) {}

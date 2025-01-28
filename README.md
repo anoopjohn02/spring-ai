@@ -18,7 +18,7 @@ AI Integrations:
 
 Run chroma db docker container in local before you start.
 
-    docker run -p 8000:8000 chromadb/chroma
+    docker run --rm --name chroma -p 8000:8000 ghcr.io/chroma-core/chroma:0.5.20
 
 # Environment variable needs to set
 

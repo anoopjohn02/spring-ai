@@ -29,79 +29,78 @@ import reactor.core.publisher.Flux;
 @Service
 public class OpenAIServiceImpl implements OpenAIService {
 
-    private final ChatClient chatClient;
+  private final ChatClient chatClient;
 
+  @Value("classpath:templates/capital-with-info.st")
+  private Resource capitalPromptWithInfo;
 
-    @Value("classpath:templates/capital-with-info.st")
-    private Resource capitalPromptWithInfo;
+  @Value("classpath:templates/greet-me.st")
+  private Resource greet;
 
-    @Value("classpath:templates/greet-me.st")
-    private Resource greet;
+  @Override
+  public Answer answer(Question question) {
+    return Answer.builder()
+        .answer(chatClient.prompt().user(question.question()).call().content())
+        .build();
+  }
 
-    @Override
-    public Answer answer(Question question) {
-        return Answer.builder()
-                .answer(chatClient.prompt().user(question.question()).call().content())
-                .build();
+  @Async
+  @Override
+  public void streamingChat(AIChatMessage message) {
+    Flux<String> flux = ask(message);
+    UUID messageId = UUID.randomUUID();
+    flux.subscribe(token -> tokenReceived(message.sender(), messageId, token));
+  }
+
+  @Override
+  public Flux<AIChatMessage> streamingChatApi(AIChatMessage message) {
+    Flux<String> flux = ask(message);
+    UUID messageId = UUID.randomUUID();
+    /*flux.subscribe(token -> {
+        aiChatMessage(messageId, token);
+    });*/
+    return flux.map(token -> aiChatMessage(messageId, token));
+  }
+
+  private Flux<String> ask(AIChatMessage message) {
+    SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(greet);
+    Prompt prompt = systemPromptTemplate.create(Map.of("name", message.sender()));
+    return chatClient
+        .prompt()
+        .system(prompt.getContents())
+        .user(message.content())
+        .advisors(
+            a ->
+                a.param(CHAT_MEMORY_CONVERSATION_ID_KEY, message.sender())
+                    .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 100)
+                    .param(FILTER_EXPRESSION, "userId == '" + message.sender() + "'"))
+        .stream()
+        .content();
+  }
+
+  private AIChatMessage aiChatMessage(UUID messageId, String token) {
+    return AIChatMessage.builder()
+        .messageId(messageId)
+        .content(token)
+        .sender("AI")
+        .type(MessageType.CHAT)
+        .build();
+  }
+
+  private void writeToStream(OutputStream out, UUID messageId, String token) {
+    log.info(token);
+    AIChatMessage message = aiChatMessage(messageId, token);
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      out.write(mapper.writeValueAsBytes(message));
+    } catch (IOException e) {
+      log.error("Exception while write to stream ", e);
+      throw new RuntimeException(e);
     }
+  }
 
-    @Async
-    @Override
-    public void streamingChat(AIChatMessage message) {
-        Flux<String> flux = ask(message);
-        UUID messageId = UUID.randomUUID();
-        flux.subscribe(token -> tokenReceived(message.sender(), messageId, token));
-    }
-
-    @Override
-    public Flux<AIChatMessage> streamingChatApi(AIChatMessage message) {
-        Flux<String> flux = ask(message);
-        UUID messageId = UUID.randomUUID();
-        /*flux.subscribe(token -> {
-            aiChatMessage(messageId, token);
-        });*/
-        return flux.map(token -> aiChatMessage(messageId, token));
-    }
-
-    private Flux<String> ask(AIChatMessage message) {
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(greet);
-        Prompt prompt = systemPromptTemplate.create(Map.of("name", message.sender()));
-        return chatClient.prompt()
-                .system(prompt.getContents())
-                .user(message.content())
-                .advisors(a -> a
-                        .param(CHAT_MEMORY_CONVERSATION_ID_KEY, message.sender())
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 100)
-                        .param(FILTER_EXPRESSION, "userId == '" + message.sender() + "'")
-                )
-                .stream()
-                .content();
-    }
-
-    private AIChatMessage aiChatMessage(UUID messageId, String token) {
-        return AIChatMessage.builder()
-                .messageId(messageId)
-                .content(token)
-                .sender("AI")
-                .type(MessageType.CHAT)
-                .build();
-    }
-
-    private void writeToStream(OutputStream out, UUID messageId, String token) {
-        log.info(token);
-        AIChatMessage message = aiChatMessage(messageId, token);
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            out.write(mapper.writeValueAsBytes(message));
-        } catch (IOException e) {
-            log.error("Exception while write to stream ", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void tokenReceived(String userId, UUID messageId, String token) {
-        log.debug(token);
-       //send(userId, aiChatMessage(messageId, token));
-    }
-
+  private void tokenReceived(String userId, UUID messageId, String token) {
+    log.debug(token);
+    // send(userId, aiChatMessage(messageId, token));
+  }
 }

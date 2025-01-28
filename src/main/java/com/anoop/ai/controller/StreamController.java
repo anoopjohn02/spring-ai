@@ -21,28 +21,31 @@ import reactor.core.publisher.Flux;
 @RequestMapping(value = "/v1/stream")
 public class StreamController {
 
-    private final OpenAIService openAIService;
+  private final OpenAIService openAIService;
 
-    @PostMapping(value = "/api", produces = MediaType.TEXT_EVENT_STREAM_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<AIChatMessage> stream(@RequestBody AIChatMessage aiChatMessage) {
-        log.info("Sending message");
-        return openAIService.streamingChatApi(aiChatMessage);
-    }
+  @PostMapping(
+      value = "/api",
+      produces = MediaType.TEXT_EVENT_STREAM_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  public Flux<AIChatMessage> stream(@RequestBody AIChatMessage aiChatMessage) {
+    log.info("Sending message");
+    return openAIService.streamingChatApi(aiChatMessage);
+  }
 
-    @GetMapping(value = "/temp", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<AIChatMessage> tempStream() {
-        log.info("Temp Streaming...");
-        return Flux.range(1, 10)
-                .delayElements(Duration.ofSeconds(1))
-                .map(i -> aIChatMessage("stream message-"+i +" "));
-    }
+  @GetMapping(value = "/temp", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public Flux<AIChatMessage> tempStream() {
+    log.info("Temp Streaming...");
+    return Flux.range(1, 10)
+        .delayElements(Duration.ofSeconds(1))
+        .map(i -> aIChatMessage("stream message-" + i + " "));
+  }
 
-    private AIChatMessage aIChatMessage(String message) {
-        return AIChatMessage.builder()
-                .messageId(UUID.randomUUID())
-                .content(message)
-                .sender("AI")
-                .type(MessageType.CHAT)
-                .build();
-    }
+  private AIChatMessage aIChatMessage(String message) {
+    return AIChatMessage.builder()
+        .messageId(UUID.randomUUID())
+        .content(message)
+        .sender("AI")
+        .type(MessageType.CHAT)
+        .build();
+  }
 }

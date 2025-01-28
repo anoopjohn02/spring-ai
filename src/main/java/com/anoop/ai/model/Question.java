@@ -1,3 +1,3 @@
 package com.anoop.ai.model;
 
-public record Question (String question) {}
+public record Question(String question) {}

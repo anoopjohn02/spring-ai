@@ -6,8 +6,9 @@ import com.anoop.ai.model.Question;
 import reactor.core.publisher.Flux;
 
 public interface OpenAIService {
-    Answer answer(Question question);
+  Answer answer(Question question);
 
-    void streamingChat(AIChatMessage message);
-    Flux<AIChatMessage> streamingChatApi(AIChatMessage message);
+  void streamingChat(AIChatMessage message);
+
+  Flux<AIChatMessage> streamingChatApi(AIChatMessage message);
 }

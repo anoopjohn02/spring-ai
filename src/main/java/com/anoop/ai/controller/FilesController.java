@@ -6,6 +6,7 @@ import com.anoop.ai.services.FilesStorageService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.codec.multipart.FilePart;
@@ -20,50 +21,51 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 @RequestMapping(value = "/v1/files")
 public class FilesController {
-    @Autowired
-    private FilesStorageService storageService;
+  @Autowired private FilesStorageService storageService;
 
-    @GetMapping
-    public Flux<FileInfo> getListFiles() throws IOException {
-        Flux<FileInfo> fileInfos = Flux.fromStream(storageService.loadAll())
-                .map(path -> {
-                    String filename = path.getFileName().toString();
-                    return new FileInfo(filename, "");
+  @GetMapping
+  public Flux<FileInfo> getListFiles() throws IOException {
+    Flux<FileInfo> fileInfos =
+        Flux.fromStream(storageService.loadAll())
+            .map(
+                path -> {
+                  String filename = path.getFileName().toString();
+                  return new FileInfo(filename, "");
                 });
-        return fileInfos;
-    }
+    return fileInfos;
+  }
 
-    @GetMapping("/{filename:.+}")
-    @ResponseBody
-    public Mono<Resource> getFile(@PathVariable String filename) throws MalformedURLException {
-        Resource file = storageService.load(filename);
-        return Mono.just(file);
-    }
+  @GetMapping("/{filename:.+}")
+  @ResponseBody
+  public Mono<Resource> getFile(@PathVariable String filename) throws MalformedURLException {
+    Resource file = storageService.load(filename);
+    return Mono.just(file);
+  }
 
-    @PostMapping("/upload/{id}")
-    public Mono<ResponseMessage> uploadFile(
-            @RequestPart("file") Mono<FilePart> filePartMono,
-            @PathVariable(name = "id") String userId) {
-        return filePartMono.flatMap(filePart -> {
-            String message = "";
-            try {
-                storageService.save(filePart, userId);
-                message = "Uploaded the file successfully: " + filePart.filename();
-                return Mono.just(new ResponseMessage(message));
-            } catch (Exception e) {
-                message = "Could not upload the file: " + filePart.filename() + ". Error: " + e.getMessage();
-                return Mono.just(new ResponseMessage(message));
-            }
+  @PostMapping("/upload/{id}")
+  public Mono<ResponseMessage> uploadFile(
+      @RequestPart("file") Mono<FilePart> filePartMono, @PathVariable(name = "id") String userId) {
+    return filePartMono.flatMap(
+        filePart -> {
+          try {
+            return storageService.save(filePart, userId);
+          } catch (Exception e) {
+            log.error("Error: ", e);
+            String message =
+                "Could not upload the file: " + filePart.filename() + ". Error: " + e.getMessage();
+            return Mono.just(new ResponseMessage(message));
+          }
         });
-    }
+  }
 
-    @DeleteMapping("/all")
-    public Mono<Void> deleteAll() {
-        storageService.deleteAll();
-        return Mono.empty();
-    }
+  @DeleteMapping("/all")
+  public Mono<Void> deleteAll() {
+    storageService.deleteAll();
+    return Mono.empty();
+  }
 }
