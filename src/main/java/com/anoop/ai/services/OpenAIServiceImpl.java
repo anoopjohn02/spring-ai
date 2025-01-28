@@ -54,12 +54,8 @@ public class OpenAIServiceImpl implements OpenAIService {
 
   @Override
   public Flux<AIChatMessage> streamingChatApi(AIChatMessage message) {
-    Flux<String> flux = ask(message);
     UUID messageId = UUID.randomUUID();
-    /*flux.subscribe(token -> {
-        aiChatMessage(messageId, token);
-    });*/
-    return flux.map(token -> aiChatMessage(messageId, token));
+    return ask(message).map(s -> this.aiChatMessage(messageId, s));
   }
 
   private Flux<String> ask(AIChatMessage message) {
