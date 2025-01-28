@@ -14,7 +14,6 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.config.EnableWebFlux;
 
 @Slf4j
 @Configuration
@@ -29,12 +28,11 @@ public class AppAIConfig {
 
     @Bean
     public ChatClient chatClient() {
-        return chatClientBuilder
-                .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
-                        new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults())
-                )
-                .build();
+    return chatClientBuilder
+        .defaultAdvisors(
+            new MessageChatMemoryAdvisor(chatMemory),
+            new QuestionAnswerAdvisor(vectorStore, SearchRequest.builder().build()))
+        .build();
     }
 
     @Bean

@@ -2,15 +2,6 @@ package com.anoop.ai.services;
 
 import com.anoop.ai.data.vector.DocumentService;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
@@ -21,6 +12,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 @Slf4j
 @Service

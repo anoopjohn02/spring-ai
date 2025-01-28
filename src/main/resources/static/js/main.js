@@ -73,7 +73,7 @@ function sendStream(event) {
                 type: 'CHAT'
             };
     var msg = JSON.stringify(chatMessage)
-    const streamUrl = 'http://localhost:8081/v1/stream/api';
+    const streamUrl = host + '/v1/stream/temp';
     fetch(streamUrl, {
         method: 'POST',
         headers: {
