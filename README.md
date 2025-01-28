@@ -36,5 +36,6 @@ Run chroma db docker container in local before you start.
     - Add a userId at the end. This is the identification for vector db.
 3. Open browser and go to url http://localhost:8081/web/index.html
     - Enter same userId and start chat
+4. Open chroma swagger: http://localhost:8000/docs
 
 Note: Websocket will be inactive after long inactivity.

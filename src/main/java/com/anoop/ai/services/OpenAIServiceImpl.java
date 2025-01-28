@@ -20,7 +20,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -32,9 +31,6 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     private final ChatClient chatClient;
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
-    private static final String WS_MESSAGE_DESTINATION = "/topic";
 
     @Value("classpath:templates/capital-with-info.st")
     private Resource capitalPromptWithInfo;
@@ -105,12 +101,7 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     private void tokenReceived(String userId, UUID messageId, String token) {
         log.debug(token);
-        send(userId, aiChatMessage(messageId, token));
-    }
-
-    private void send(String userId, AIChatMessage message) {
-        String destination = WS_MESSAGE_DESTINATION + "/" + userId;
-        simpMessagingTemplate.convertAndSend(destination, message);
+       //send(userId, aiChatMessage(messageId, token));
     }
 
 }
