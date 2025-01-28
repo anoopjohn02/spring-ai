@@ -19,32 +19,31 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class AppAIConfig {
-    private final ChatClient.Builder chatClientBuilder;
-    private final ChatMemory chatMemory;
-    private final VectorStore vectorStore;
+  private final ChatClient.Builder chatClientBuilder;
+  private final ChatMemory chatMemory;
+  private final VectorStore vectorStore;
 
-    @Value("${spring.ai.openai.api-key}")
-    private String apiKey;
+  @Value("${spring.ai.openai.api-key}")
+  private String apiKey;
 
-    @Bean
-    public ChatClient chatClient() {
-        return chatClientBuilder
-                .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
-                        new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults())
-                )
-                .build();
-    }
+  @Bean
+  public ChatClient chatClient() {
+    return chatClientBuilder
+        .defaultAdvisors(
+            new MessageChatMemoryAdvisor(chatMemory),
+            new QuestionAnswerAdvisor(vectorStore, SearchRequest.builder().build()))
+        .build();
+  }
 
-    @Bean
-    public TokenTextSplitter tokenTextSplitter() {
-        return new TokenTextSplitter();
-    }
+  @Bean
+  public TokenTextSplitter tokenTextSplitter() {
+    return new TokenTextSplitter();
+  }
 
-    @Bean
-    public PdfDocumentReaderConfig pdfDocumentReaderConfig() {
-        return PdfDocumentReaderConfig.builder()
-                .withPageExtractedTextFormatter(new ExtractedTextFormatter.Builder().build())
-                .build();
-    }
+  @Bean
+  public PdfDocumentReaderConfig pdfDocumentReaderConfig() {
+    return PdfDocumentReaderConfig.builder()
+        .withPageExtractedTextFormatter(new ExtractedTextFormatter.Builder().build())
+        .build();
+  }
 }

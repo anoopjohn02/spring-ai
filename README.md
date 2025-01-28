@@ -5,18 +5,20 @@ Technologies:
 - Java 17+
 - Spring boot
 - Spring AI
-- Websocket
+- Spring web flux
+- HTML, CSS
 
 AI Integrations:
 - OpenAPI for LLM
 - Chroma db for Vector store
 - In-memory for memory
+- Webflux for streaming
 
 # Run chroma db
 
 Run chroma db docker container in local before you start.
 
-    docker run -p 8000:8000 chromadb/chroma
+    docker run --rm --name chroma -p 8000:8000 ghcr.io/chroma-core/chroma:0.5.20
 
 # Environment variable needs to set
 
@@ -27,12 +29,11 @@ Run chroma db docker container in local before you start.
 
 # Steps
 
-1. Open code in IDE and run localy
+1. Open code in IDE and run locally
 2. Upload document
     - Use postman to upload a pdf document
       url: http://localhost:8081/v1/files/upload/userId
     - Add a userId at the end. This is the identification for vector db.
-3. Open browser and go to url http://localhost:8081/
+3. Open browser and go to url http://localhost:8081/web/index.html
     - Enter same userId and start chat
-
-Note: Websocket will be inactive after long inactivity.
+4. Open chroma swagger: http://localhost:8000/docs
