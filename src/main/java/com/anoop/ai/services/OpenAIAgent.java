@@ -27,30 +27,12 @@ import reactor.core.publisher.Flux;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class OpenAIServiceImpl implements OpenAIService {
+public class OpenAIAgent implements Agent {
 
   private final ChatClient chatClient;
 
-  @Value("classpath:templates/capital-with-info.st")
-  private Resource capitalPromptWithInfo;
-
   @Value("classpath:templates/greet-me.st")
   private Resource greet;
-
-  @Override
-  public Answer answer(Question question) {
-    return Answer.builder()
-        .answer(chatClient.prompt().user(question.question()).call().content())
-        .build();
-  }
-
-  @Async
-  @Override
-  public void streamingChat(AIChatMessage message) {
-    Flux<String> flux = ask(message);
-    UUID messageId = UUID.randomUUID();
-    flux.subscribe(token -> tokenReceived(message.sender(), messageId, token));
-  }
 
   @Override
   public Flux<AIChatMessage> streamingChatApi(AIChatMessage message) {
@@ -75,6 +57,7 @@ public class OpenAIServiceImpl implements OpenAIService {
   }
 
   private AIChatMessage aiChatMessage(UUID messageId, String token) {
+    log.info("Token received: {}", token);
     return AIChatMessage.builder()
         .messageId(messageId)
         .content(token)
@@ -83,20 +66,4 @@ public class OpenAIServiceImpl implements OpenAIService {
         .build();
   }
 
-  private void writeToStream(OutputStream out, UUID messageId, String token) {
-    log.info(token);
-    AIChatMessage message = aiChatMessage(messageId, token);
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      out.write(mapper.writeValueAsBytes(message));
-    } catch (IOException e) {
-      log.error("Exception while write to stream ", e);
-      throw new RuntimeException(e);
-    }
-  }
-
-  private void tokenReceived(String userId, UUID messageId, String token) {
-    log.debug(token);
-    // send(userId, aiChatMessage(messageId, token));
-  }
 }

@@ -8,7 +8,6 @@ var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#messageArea');
 var connectingElement = document.querySelector('.connecting');
 
-var stompClient = null;
 var username = null;
 
 var colors = [
@@ -24,43 +23,12 @@ function connect(event) {
     if(username) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
-
-        var socket = new SockJS('/websocket');
-        stompClient = Stomp.over(socket);
-
-        stompClient.connect({}, onConnected, onError);
     }
     event.preventDefault();
 }
 
-
-function onConnected() {
-    // Subscribe to the Public Topic
-    stompClient.subscribe('/topic/'+username, onWsMessageReceived);
-
-    // Tell your username to the server
-    stompClient.send("/app/chat.register",
-        {},
-        JSON.stringify({sender: username, type: 'JOIN'})
-    )
-
-    connectingElement.classList.add('hidden');
-}
-
-
-function onError(error) {
-    connectingElement.textContent = 'Unable to connect to WebSocket! Use Stream API.';
-    connectingElement.style.color = 'red';
-}
-
 function send(event) {
-    var messageType = document.querySelector('input[name="radio"]:checked').value;
-    //console.log(messageType)
-    if(messageType == 'api'){
-        sendStream(event);
-    }else if(messageType == 'ws'){
-        sendWs(event);
-    }
+    sendStream(event);
     event.preventDefault();
 }
 
@@ -112,37 +80,16 @@ function handleStream(event) {
     console.log(event.data);
 }
 
-function sendWs(event) {
-    var messageContent = messageInput.value.trim();
-    if(messageContent && stompClient) {
-        var chatMessage = {
-            messageId: self.crypto.randomUUID(),
-            sender: username,
-            content: messageInput.value,
-            type: 'CHAT'
-        };
-
-        stompClient.send("/app/chat.send/"+username, {}, JSON.stringify(chatMessage));
-        messageInput.value = '';
-    }
-}
-
-function onWsMessageReceived(payload) {
-    onMessageReceived(payload.body);
-}
-
 function onMessageReceived(payload) {
     try{
-        //console.log(payload);
+        //var data = JSON.stringify(payload);
         var message = JSON.parse(payload);
         var textElement = document.getElementById(message.messageId);
         if(textElement){
-            //console.log("element find")
             var messageText = document.createTextNode(message.content);
             textElement.appendChild(messageText);
             return;
         } else {
-            //console.log("element NOT find")
             textElement = document.createElement('p');
             textElement.setAttribute("id", message.messageId);
         }
